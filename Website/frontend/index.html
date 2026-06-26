@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ChurnIQ — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="fas fa-chart-line"></i></div>
+      <span class="brand-name">ChurnIQ</span>
+      <span class="brand-badge">ML Powered</span>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Analytics</div>
+      <a href="index.html" class="nav-item active" data-label="Dashboard">
+        <i class="fas fa-table-columns"></i><span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Prediction</div>
+      <a href="predict.html" class="nav-item" data-label="Predict Churn">
+        <i class="fas fa-brain"></i><span>Predict Churn</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-bottom">
+      <div class="model-badge">
+        <i class="fas fa-circle" style="color:#10b981;font-size:9px"></i>
+        <div class="model-badge-text">
+          <small>API Status</small>
+          <strong id="apiStatus">Connecting…</strong>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px;padding:0 4px">
+        <span id="lastUpdated">Waiting for data…</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Header -->
+    <header class="header">
+      <button class="toggle-btn" id="toggleSidebar"><i class="fas fa-bars"></i></button>
+      <nav class="breadcrumb">
+        <span>ChurnIQ</span>
+        <span class="sep"><i class="fas fa-chevron-right" style="font-size:9px"></i></span>
+        <span class="active">Dashboard</span>
+      </nav>
+      <div class="header-right">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search customers…" id="headerSearch">
+        </div>
+        <button class="header-icon-btn" title="Refresh data" onclick="manualRefresh()">
+          <i class="fas fa-rotate-right" id="refreshIcon"></i>
+        </button>
+        <button class="header-icon-btn">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="user-chip">
+          <div class="user-avatar">A</div>
+          <span>Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Customer Churn Dashboard</h1>
+          <p class="page-subtitle">IBM Telco Dataset — 7,043 customers across California</p>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="skeleton sk-kpi"></div>
+        <div class="skeleton sk-kpi"></div>
+        <div class="skeleton sk-kpi"></div>
+        <div class="skeleton sk-kpi"></div>
+      </div>
+
+      <!-- Row 1: Churn donut + Contract bar -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Churn Distribution</div>
+              <div class="card-subtitle">Overall churn vs retained customers</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="churnDonut"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Churn Rate by Contract Type</div>
+              <div class="card-subtitle">Month-to-month vs longer contracts</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="contractChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Internet service + Payment method -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Churn by Internet Service</div>
+              <div class="card-subtitle">Fiber optic customers churn the most</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="internetChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Churn by Payment Method</div>
+              <div class="card-subtitle">Electronic check users at highest risk</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="paymentChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Tenure histogram + Monthly charges histogram -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Tenure Distribution</div>
+              <div class="card-subtitle">New customers are most likely to churn</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="tenureChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Monthly Charges Distribution</div>
+              <div class="card-subtitle">High-paying customers churn more</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="chargesChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Senior citizen + Churn reasons (full width) -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Senior vs Non-Senior Churn</div>
+              <div class="card-subtitle">Senior citizens churn at nearly 2× the rate</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="seniorChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top 10 Churn Reasons</div>
+              <div class="card-subtitle">Among 1,869 customers who left</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="reasonsChart"><div class="skeleton sk-chart"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer table -->
+      <div class="card full">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Customer Records</div>
+            <div class="card-subtitle" id="tableSubtitle">Loading…</div>
+          </div>
+          <div class="card-actions">
+            <select class="filter-select" id="churnFilter" onchange="loadTable(1)">
+              <option value="">All Customers</option>
+              <option value="Yes">Churned</option>
+              <option value="No">Retained</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-controls">
+            <div class="table-search">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search by ID, contract, internet…"
+                     id="tableSearch" oninput="debounceSearch()">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer ID</th><th>Gender</th><th>Senior</th>
+                  <th>Tenure (mo)</th><th>Contract</th><th>Internet</th>
+                  <th>Monthly $</th><th>Total $</th><th>Churn Score</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted)">
+                  <i class="fas fa-spinner spin"></i> Loading…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-bar" id="paginationBar"></div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <span>© 2024 ChurnIQ</span>
+      <span></span>
+    </footer>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

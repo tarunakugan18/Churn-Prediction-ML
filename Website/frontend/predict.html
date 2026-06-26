@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ChurnIQ — Predict Churn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .file-info-bar {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 16px;
+      background:linear-gradient(135deg,#eff6ff,#eef2ff);
+      border:1px solid #bfdbfe; border-radius:var(--radius-sm);
+      margin-top:12px;
+    }
+    .file-info-bar i   { color:#3b82f6; font-size:20px; }
+    .file-info-name    { font-size:13px; font-weight:700; }
+    .file-info-size    { font-size:12px; color:var(--text-muted); }
+    .file-info-remove  {
+      margin-left:auto; background:none; border:none;
+      color:var(--text-muted); cursor:pointer; font-size:16px;
+      transition:color var(--transition);
+    }
+    .file-info-remove:hover { color:#ef4444; }
+
+    .preview-section, .results-section {
+      margin-top:24px; display:none;
+      min-width:0; max-width:100%; overflow:hidden;
+    }
+    .result-row-churn td  { background:#fff5f5!important; }
+    .result-row-keep  td  { background:#f0fdf4!important; }
+    .result-row-monitor td{ background:#fffbeb!important; }
+
+    .risk-bar-wrap  { display:flex; align-items:center; gap:8px; min-width:130px; }
+    .risk-bar-inner { flex:1; height:5px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+    .risk-bar-fill  { height:100%; border-radius:3px; }
+    .risk-high      { background:#ef4444; }
+    .risk-medium    { background:#f59e0b; }
+    .risk-low       { background:#10b981; }
+
+    .predict-actions { display:flex; align-items:center; gap:12px; margin-top:20px; flex-wrap:wrap; }
+    #downloadBtn { display:none; }
+
+    .legend-bar {
+      display:flex; align-items:center; gap:20px;
+      padding:10px 16px; background:var(--body-bg);
+      border-radius:var(--radius-sm); margin-bottom:14px;
+      flex-wrap:wrap; font-size:12px; font-weight:600;
+    }
+    .legend-item { display:flex; align-items:center; gap:6px; }
+    .legend-dot  { width:10px; height:10px; border-radius:50%; }
+  </style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="fas fa-chart-line"></i></div>
+      <span class="brand-name">ChurnIQ</span>
+      <span class="brand-badge">ML Powered</span>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Analytics</div>
+      <a href="index.html" class="nav-item" data-label="Dashboard">
+        <i class="fas fa-table-columns"></i><span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Prediction</div>
+      <a href="predict.html" class="nav-item active" data-label="Predict Churn">
+        <i class="fas fa-brain"></i><span>Predict Churn</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-bottom">
+      <div class="model-badge">
+        <i class="fas fa-circle" style="color:#10b981;font-size:9px"></i>
+        <div class="model-badge-text">
+          <small>API Status</small>
+          <strong id="apiStatus">Connecting…</strong>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Header -->
+    <header class="header">
+      <button class="toggle-btn" id="toggleSidebar"><i class="fas fa-bars"></i></button>
+      <nav class="breadcrumb">
+        <span>ChurnIQ</span>
+        <span class="sep"><i class="fas fa-chevron-right" style="font-size:9px"></i></span>
+        <span class="active">Predict Churn</span>
+      </nav>
+      <div class="header-right">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search results…" id="resultsSearch" oninput="filterResults()">
+        </div>
+        <button class="header-icon-btn">
+          <i class="fas fa-bell"></i><span class="notif-dot"></span>
+        </button>
+        <div class="user-chip">
+          <div class="user-avatar">A</div>
+          <span>Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Predict Customer Churn</h1>
+          <p class="page-subtitle">Upload customer data (Excel/CSV) to classify churn risk</p>
+        </div>
+      </div>
+
+      <!-- How to use -->
+      <div class="card full">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-circle-info" style="color:#3b82f6;margin-right:8px"></i>How to Use</div>
+        </div>
+        <div class="card-body">
+          <div class="steps-grid">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div>
+                <div class="step-title">Download Template</div>
+                <div class="step-desc">Get the Excel template with the required column structure.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div>
+                <div class="step-title">Fill Customer Data</div>
+                <div class="step-desc">Add your customer rows with all required fields.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div>
+                <div class="step-title">Upload the File</div>
+                <div class="step-desc">Drag & drop or browse — supports .xlsx, .xls, .csv.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">4</div>
+              <div>
+                <div class="step-title">Run Prediction</div>
+                <div class="step-desc">Click Predict and review the churn risk per customer.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">5</div>
+              <div>
+                <div class="step-title">Download Results</div>
+                <div class="step-desc">Export color-coded Excel with predictions & probabilities.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload card -->
+      <div class="card full" style="margin-top:24px">
+        <div class="card-header">
+          <div class="card-title">Upload Customer File</div>
+          <div class="card-actions">
+            <button class="btn btn-outline" id="templateBtn" onclick="downloadTemplate()">
+              <i class="fas fa-download"></i> Template
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Drop zone -->
+          <div class="upload-zone" id="uploadZone"
+               ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"
+               ondrop="handleDrop(event)" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon"><i class="fas fa-file-excel"></i></div>
+            <div class="upload-title">Drag & drop your Excel or CSV file here</div>
+            <div class="upload-sub">or click to browse from your computer</div>
+            <div class="upload-hint">Supported: <span>.xlsx</span> <span>.xls</span> <span>.csv</span></div>
+          </div>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+
+          <!-- File info bar (shown after file selected) -->
+          <div class="file-info-bar" id="fileInfoBar" style="display:none">
+            <i class="fas fa-file-excel"></i>
+            <div>
+              <div class="file-info-name" id="fileName">—</div>
+              <div class="file-info-size" id="fileSize">—</div>
+            </div>
+            <button class="file-info-remove" onclick="resetFile()" title="Remove file">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <div class="predict-actions">
+            <button class="btn btn-primary" id="predictBtn" onclick="runPrediction()" disabled>
+              <i class="fas fa-brain"></i> Predict Churn
+            </button>
+            <button class="btn btn-success" id="downloadBtn" onclick="downloadResults()">
+              <i class="fas fa-download"></i> Download Results
+            </button>
+            <span id="predictStatus" style="font-size:13px;color:var(--text-muted)"></span>
+          </div>
+
+          <!-- Progress -->
+          <div id="progressWrap" style="display:none;margin-top:14px">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px" id="progressLabel">
+              Processing…
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview section (before prediction) -->
+      <div class="preview-section" id="previewSection">
+        <div class="card full">
+          <div class="card-header">
+            <div>
+              <div class="card-title">File Preview</div>
+              <div class="card-subtitle" id="previewSubtitle">Showing first 10 rows</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrapper">
+              <table id="previewTable">
+                <thead id="previewHead"></thead>
+                <tbody id="previewBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results section (after prediction) -->
+      <div class="results-section" id="resultsSection">
+
+        <!-- Summary cards -->
+        <div class="result-grid" id="resultGrid"></div>
+
+        <!-- Results table -->
+        <div class="card full">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Prediction Results</div>
+              <div class="card-subtitle" id="resultSubtitle">—</div>
+            </div>
+            <div class="card-actions">
+              <select class="filter-select" id="riskFilter" onchange="filterResults()">
+                <option value="">All Risk Levels</option>
+                <option value="HIGH">HIGH Risk</option>
+                <option value="MEDIUM">MEDIUM Risk</option>
+                <option value="LOW">LOW Risk</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="legend-bar">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#ef4444"></div>DROP / Intervene Now
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#f59e0b"></div>MONITOR
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#10b981"></div>KEEP
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr id="resultTableHead"></tr>
+                </thead>
+                <tbody id="resultTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar" id="resultPaginationBar"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <span>© 2024 ChurnIQ</span>
+    </footer>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
+<script src="js/predict.js"></script>
+</body>
+</html>
